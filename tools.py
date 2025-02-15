@@ -68,20 +68,20 @@ tool_definitions = [
             }
         }
     },
-    {
-        "type": "function",
-        "function": {
-            "name": "add_to_memory",
-            "description": "Add some information to your long-term memory to remember.",
-            "parameters": {
-                "type": "object",
-                "required": ["memory_text"],
-                "properties": {
-                    "memory_text": {"type": "string", "description": "Text to remember for later."}
-                }
-            }
-        }
-    },
+    # {
+    #     "type": "function",
+    #     "function": {
+    #         "name": "add_to_memory",
+    #         "description": "Add some information to your long-term memory to remember.",
+    #         "parameters": {
+    #             "type": "object",
+    #             "required": ["memory_text"],
+    #             "properties": {
+    #                 "memory_text": {"type": "string", "description": "Text to remember for later."}
+    #             }
+    #         }
+    #     }
+    # },
 ]
 
 tool_functions = {

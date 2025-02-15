@@ -3,3 +3,4 @@ __pycache__/
 config/
 data/
 sessions/
+test*.py

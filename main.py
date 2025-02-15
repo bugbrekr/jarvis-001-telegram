@@ -4,7 +4,7 @@ import time
 import functions
 import tools
 import llm_utils
-import context
+import context_manager
 
 with open("config/config.toml") as f:
     config = toml.loads(f.read())
@@ -57,7 +57,7 @@ async def edit_message(is_with_bot, event, message_id, updated_message):
     else:
         return await client.edit_message(event.peer_id, message_id, updated_message)
 
-async def handle_jarvis(is_with_bot, event, chat_history):
+async def handle_jarvis(is_with_bot, event, chat_history, context:context_manager.Context):
     message_id = None
     thinking_dur = None
     async def output_started():
@@ -80,15 +80,10 @@ async def handle_jarvis(is_with_bot, event, chat_history):
         if not message_id or not thinking_dur: return
         await edit_message(is_with_bot, event, message_id, response_message+incomplete_message.strip()[:-1]+"\n\n__still typing, hold on...__")
     response_message = ""
-    user_notes = context.get_user_notes(event.from_id.user_id)
-    tg_user_identity = context.get_tg_user_identity(event.from_id.user_id)
     while True:
-        owner_instructions = context.get_owner_instructions()
         response = await invoke_jarvis(
             chat_history,
-            owner_instructions,
-            user_notes,
-            tg_user_identity,
+            context,
             output_started,
             thinking_finished,
             intermediate_completion
@@ -103,11 +98,6 @@ async def handle_jarvis(is_with_bot, event, chat_history):
                 if tool_call["name"] == "clear_context":
                     chat_history.clear()
                     return "Context cleared."
-                if tool_call["name"] == "add_to_memory":
-                    context.add_user_note(event.from_id.user_id, tool_call["arguments"].get("memory_text"))
-                    tool_call["res"] = "Added to memory."
-                    tool_call["success"] = True
-                    continue
                 res, success = tools.call_tool(tool_call["name"], tool_call["arguments"])
                 tool_call["res"] = res
                 tool_call["success"] = success
@@ -135,14 +125,12 @@ async def handle_jarvis(is_with_bot, event, chat_history):
 
 async def invoke_jarvis(
         messages,
-        owner_instructions,
-        user_notes,
-        tg_user_identity,
+        context:context_manager.Context,
         output_started_func=None,
         thinking_finished_func=None,
         intermediate_completion_func=None
     ):
-    system_prompt = llm_utils.prepare_system_prompt(tools.tool_definitions, owner_instructions, user_notes, tg_user_identity)
+    system_prompt = llm_utils.prepare_system_prompt(tools.tool_definitions, context)
     messages_with_system = [{"role": "system", "content": system_prompt}]+messages
     started = False
     resp_message = ""
@@ -181,19 +169,20 @@ async def on_new_message(event:events.newmessage.NewMessage.Event):
     is_with_bot = event.out
     if not message: return
     if global_user_flags.get(user_id): return
-    # if not global_chat_history.get(user_id):
-    #     await send_message(is_with_bot, event, config["jarvis-001"]["init_message_pre"]+config["jarvis-001"]["init_message"])
-    #     global_chat_history[user_id] = [
-    #         {"role": "user", "content": message},
-    #         {"role": "assistant", "content": config["jarvis-001"]["init_message"]},
-    #     ]
-    #     return
+    context = context_manager.Context(user_id)
+    if context.first_time:
+        await send_message(is_with_bot, event, config["jarvis-001"]["init_message_pre"]+config["jarvis-001"]["init_message"])
+        global_chat_history[user_id] = [
+            {"role": "user", "content": message},
+            {"role": "assistant", "content": config["jarvis-001"]["init_message"]},
+        ]
+        context.first_time = False
+        return
     user_data = await event.get_sender()
-    context.set_tg_user_identity(
-        user_id,
-        user_data.first_name+(" "+user_data.last_name if user_data.last_name else ""),
-        user_data.username
-    )
+    context.identity = {
+        "name": user_data.first_name+(" "+user_data.last_name if user_data.last_name else ""),
+        "username": user_data.username
+    }
     if message == "/clear":
         global_chat_history[user_id] = []
         await send_message(is_with_bot, event, "Context cleared.")
@@ -202,7 +191,7 @@ async def on_new_message(event:events.newmessage.NewMessage.Event):
     chat_history = global_chat_history.get(user_id, [])
     chat_history.append({"role": "user", "content": message})
     print("[USER]: "+message)
-    await handle_jarvis(is_with_bot, event, chat_history)
+    await handle_jarvis(is_with_bot, event, chat_history, context)
     global_chat_history[user_id] = chat_history
     global_user_flags[user_id] = False
 

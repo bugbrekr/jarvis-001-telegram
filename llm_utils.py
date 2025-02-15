@@ -1,6 +1,7 @@
 from huggingface_hub import InferenceClient
 import json
 import toml
+import context_manager
 
 with open("config/SYSTEM.txt") as f:
 	SYSTEM_TEMPLATE = f.read()
@@ -31,14 +32,14 @@ class LLM:
 def prepare_formatted_tool_definitions(tool_definitions):
 	return "\n".join([json.dumps(i) for i in tool_definitions])
 
-def prepare_system_prompt(tool_definitions, owner_instructions, user_notes, tg_user_identity):
-	if not tg_user_identity.get("username"):
+def prepare_system_prompt(tool_definitions, context:context_manager.Context):
+	username = context.identity["username"]
+	if not context.identity.get("username"):
 		username = "NOT SET"
-	username = tg_user_identity["username"]
 	formatted_tool_definitions = prepare_formatted_tool_definitions(tool_definitions)
 	system_prompt = SYSTEM_TEMPLATE.replace("d2b17e58386b54a2_tools", formatted_tool_definitions)
-	system_prompt = system_prompt.replace("11fb299ecd72fe4e_owner_instructions", owner_instructions)
-	system_prompt = system_prompt.replace("9f598d8057f32d52_user_notes", user_notes)
-	system_prompt = system_prompt.replace("3f32b4d1fe11651e_tg_contact_name", tg_user_identity["name"])
+	system_prompt = system_prompt.replace("11fb299ecd72fe4e_general_instructions", context.general_instructions)
+	system_prompt = system_prompt.replace("9f598d8057f32d52_user_specific_instructions", context.user_specific_instructions)
+	system_prompt = system_prompt.replace("3f32b4d1fe11651e_tg_contact_name", context.identity["name"])
 	system_prompt = system_prompt.replace("20013f2a506da15d_tg_username", username)
 	return system_prompt
