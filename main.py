@@ -167,6 +167,9 @@ async def on_new_message(event:events.newmessage.NewMessage.Event):
     context.contextual_memory.add_message("user", message)
     print("[USER]: "+message)
     await handle_jarvis(is_with_bot, event, context)
+    if len(context.contextual_memory.messages) >= 8:
+        context.contextual_memory.compress_context()
+        print("[COMPRESSED CHAT]:", context.contextual_memory.context_prompt)
     global_user_flags[user_id] = False
 
 if __name__ == "__main__":
