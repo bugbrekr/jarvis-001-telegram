@@ -68,7 +68,7 @@ def pretty_time_delta(dur):
         if second_diff < 30:
             return "a moment"
         if second_diff < 60:
-            return str(second_diff) + " a minute"
+            return " a minute"
         if second_diff < 120:
             return "more than a minute"
         if second_diff < 3600:

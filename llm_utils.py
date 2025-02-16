@@ -1,7 +1,7 @@
 from huggingface_hub import InferenceClient
 import json
 import toml
-import context_manager
+import datetime
 
 with open("config/SYSTEM.txt") as f:
 	SYSTEM_TEMPLATE = f.read()
@@ -43,4 +43,5 @@ def prepare_system_prompt(tool_definitions, context):
 	system_prompt = system_prompt.replace("3f32b4d1fe11651e_tg_contact_name", context.identity["name"])
 	system_prompt = system_prompt.replace("20013f2a506da15d_tg_username", username)
 	system_prompt = system_prompt.replace("7f73e86944eee177_context_prompt", context.contextual_memory.context_prompt)
+	system_prompt = system_prompt.replace("d3914337f50c604d_datetime", datetime.datetime.now().strftime("%A, %d %B %Y, %H:%M:%S"))
 	return system_prompt
