@@ -130,7 +130,7 @@ class ContextualMemory:
     def _generate_summary(self, messages):
         formatted_messages = ""
         if self.context_prompt:
-            formatted_messages += "Previous Context: "+self.context_prompt+"\n\n"
+            formatted_messages += "Context: "+self.context_prompt+"\n\n"
         for i in messages:
             formatted_messages += i["role"].capitalize()+": "+i["message"]+"\n"
         _msgs = [

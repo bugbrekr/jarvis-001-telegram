@@ -11,7 +11,10 @@ def parse_tool_calls(message):
             tool_call = json.loads(_tool_call)
         except json.JSONDecodeError:
             continue
-        if isinstance(tool_call.get("name"), str) and isinstance(tool_call.get("arguments"), dict):
+        if isinstance(tool_call.get("name"), str) and (isinstance(tool_call.get("arguments"), dict) or isinstance(tool_call.get("parameters"), dict)):
+            if isinstance(tool_call.get("arguments"), dict):
+                tool_call["arguments"] = tool_call["parameters"]
+                tool_call.pop("parameters")
             tool_call["span"] = match.span()
             tool_calls.append(tool_call)
     return tool_calls
