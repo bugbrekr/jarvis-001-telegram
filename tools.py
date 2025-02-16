@@ -14,6 +14,21 @@ def make_web_request(url):
 def leave_note(note_text):
     return "Note sent."
 
+def get_song_lyrics(song_query):
+    r = requests.get(
+        "https://lrclib.net/api/search",
+        params={"q": song_query},
+        headers={"User-Agent": "JARVIS-001-TG v0.x(https://github.com/bugbrekr/jarvis-001-telegram)"},
+        timeout=3 # seconds
+    )
+    if not r.ok: raise BaseException("Response failed.")
+    tracks = r.json()
+    if not tracks: raise BaseException("No songs found.")
+    track = tracks[0]
+    if track["instrumental"]:
+        return "[INSTRUMENTAL]"
+    return track.get("plainLyrics") if track.get("plainLyrics") else track.get("syncedLyrics")
+
 tool_definitions = [
     {
         "type": "function",
@@ -68,6 +83,20 @@ tool_definitions = [
             }
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_song_lyrics",
+            "description": "Get the lyrics of a song from the song's name.",
+            "parameters": {
+                "type": "object",
+                "required": ["song_query"],
+                "properties": {
+                    "song_query": {"type": "string", "description": "Search query for song name (required) and artist (optional)."}
+                }
+            }
+        }
+    },
     # {
     #     "type": "function",
     #     "function": {
@@ -87,7 +116,8 @@ tool_definitions = [
 tool_functions = {
     "simple_calculator": simple_calculator,
     "make_web_request": make_web_request,
-    "leave_note": leave_note
+    "leave_note": leave_note,
+    "get_song_lyrics": get_song_lyrics
 }
 
 def call_tool(name, arguments):
