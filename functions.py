@@ -83,3 +83,28 @@ def pretty_time_delta(dur):
     if day_diff < 365:
         return str(day_diff // 30) + " months"
     return str(day_diff // 365) + " years"
+
+def _trunc(res, length=30):
+    res = res.replace("\n", " ").strip()
+    if len(res) > length:
+        res = res[:length-3]+"..."
+    return res
+
+def _generate_toolcall_text(tool_call, res, trunc=True, for_tg=False):
+    res = _trunc(res) if trunc else res
+    if for_tg:
+        return f"`{tool_call['name']}`: `{res}`"
+    params = ", ".join([k+"="+repr(_trunc(v, 10) if trunc else v) for k,v in tool_call["arguments"].items()])
+    return f"{tool_call['name']}({params}): {res}"
+
+def format_assistant_message_for_display(message:str, tool_calls:list, trunc_toolcalls=True, for_tg=False):
+    try: 
+        message = message[message.index("</think>")+8:]
+    except ValueError: 
+        pass
+    for tool_call in reversed(tool_calls):
+        tool_call_text = f"**[TOOL CALL]**: {_generate_toolcall_text(tool_call, tool_call['res'], trunc_toolcalls, for_tg)}\n"
+        message = message[:tool_call["span"][0]]+tool_call_text+message[tool_call["span"][1]:]
+    if "|get_tool_response|" in message:
+        message = message.replace("|get_tool_response|", "").rstrip()
+    return message

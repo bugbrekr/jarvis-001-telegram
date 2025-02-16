@@ -63,7 +63,7 @@ tool_definitions = [
                 "type": "object",
                 "required": ["note_text"],
                 "properties": {
-                    "note_text": {"type": "string", "description": "Text to include in the note in first-person-perspective"}
+                    "note_text": {"type": "string", "description": "Text to include in the note, written from the assistant to Chaitanya."}
                 }
             }
         }

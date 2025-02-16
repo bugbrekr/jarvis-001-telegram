@@ -32,7 +32,7 @@ class LLM:
 def prepare_formatted_tool_definitions(tool_definitions):
 	return "\n".join([json.dumps(i) for i in tool_definitions])
 
-def prepare_system_prompt(tool_definitions, context:context_manager.Context):
+def prepare_system_prompt(tool_definitions, context):
 	username = context.identity["username"]
 	if not context.identity.get("username"):
 		username = "NOT SET"
@@ -42,4 +42,5 @@ def prepare_system_prompt(tool_definitions, context:context_manager.Context):
 	system_prompt = system_prompt.replace("9f598d8057f32d52_user_specific_instructions", context.user_specific_instructions)
 	system_prompt = system_prompt.replace("3f32b4d1fe11651e_tg_contact_name", context.identity["name"])
 	system_prompt = system_prompt.replace("20013f2a506da15d_tg_username", username)
+	system_prompt = system_prompt.replace("7f73e86944eee177_context_prompt", context.contextual_memory.context_prompt)
 	return system_prompt
