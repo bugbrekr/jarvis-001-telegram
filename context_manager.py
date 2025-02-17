@@ -150,6 +150,7 @@ class ContextualMemory:
     def compress_context(self, exclude_n:int=0):
         messages_to_compress = list(self.messages[-exclude_n:])
         self.messages.clear()
+        self.chat_history.clear()
         self.db.set("context_prompt", self._generate_summary(messages_to_compress))
     def clear_context(self):
         self.messages.clear()
