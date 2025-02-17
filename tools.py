@@ -92,7 +92,7 @@ tool_definitions = [
                 "type": "object",
                 "required": ["song_query"],
                 "properties": {
-                    "song_query": {"type": "string", "description": "Search query for song name (required) and artist (optional)."}
+                    "song_query": {"type": "string", "description": "Search query for song name and artist."}
                 }
             }
         }

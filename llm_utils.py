@@ -17,7 +17,7 @@ class LLM:
 				model_name = config["huggingface"]["MODEL_NAME"]
 		self.client = InferenceClient(api_key=hf_api_key)
 		self.model_name = model_name
-	def complete(self, messages:list[dict], temperature:float=0.5, max_tokens:int=2048, top_p:float=0.7):
+	def complete(self, messages:list[dict], temperature:float=0.3, max_tokens:int=2048, top_p:float=0.7):
 		stream = self.client.chat.completions.create(
 			model=self.model_name, 
 			messages=messages, 
