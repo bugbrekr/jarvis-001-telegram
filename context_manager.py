@@ -89,7 +89,7 @@ class ListProxy:
 
 class ContextDB:
     def __init__(self, user_id:int):
-        self.db_key = user_id.to_bytes(4, "big")
+        self.db_key = user_id.to_bytes(5, "big")
         self.db = plyvel_db
     def _ser(self, d):
         return msgpack.dumps(d)
@@ -137,7 +137,7 @@ class ContextualMemory:
             {"role": "system", "content": config["compressing_agents_system_prompts"]["contextual_memory"]},
             {"role": "user", "content": formatted_messages}
         ]
-        return "".join(self.compressing_llm.complete(_msgs))
+        return "".join(self.compressing_llm.complete(_msgs, 0.5))
     def add_message(self, role:str, message:str, chat_history_only:bool=False, context_history_only:bool=False, tool_calls:list=[]):
         if not context_history_only:
             self.chat_history.append({"role": role, "content": message})
